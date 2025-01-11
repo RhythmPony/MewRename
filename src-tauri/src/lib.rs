@@ -7,6 +7,8 @@ use walkdir::WalkDir;
 use tauri::{AppHandle, Emitter, Manager};
 use serde_json::json;
 
+const VEC_LENGTH_LIMIT:u8 = 100;
+
 #[derive(Deserialize, Serialize)]
 enum RenameTarget {
     NAME,
@@ -565,23 +567,68 @@ fn foresight(
     Ok((original_path, original_name, target_path, target_name))
 }
 
-fn walk(root: PathBuf, depth: usize, file_filter: &str) -> Result<Vec<PathBuf>, String> {
-    let mut builder = WalkDir::new(root);
-    if depth > 0 {
-        builder = builder.max_depth(depth);
+struct PathIterator {
+    walker: Box<dyn Iterator<Item = walkdir::DirEntry>>,
+    file_filter: String,
+    buffer: Vec<PathBuf>,
+}
+
+impl PathIterator {
+    fn new(root: PathBuf, depth: usize, file_filter: &str) -> Self {
+        let mut builder = WalkDir::new(root);
+        if depth > 0 {
+            builder = builder.max_depth(depth);
+        }
+        let walker = builder.into_iter().filter_map(|e| e.ok());
+        PathIterator {
+            walker: Box::new(walker),
+            file_filter: file_filter.to_string(),
+            buffer: Vec::new(),
+        }
     }
-    let entries = builder
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(move|entry| {
-            match &file_filter[..] {
-                "*" => true,
-                "?" => entry.file_type().is_file(),
-                "/" => entry.file_type().is_dir(),
-                mut ext => {
-                    if ext.starts_with('.') {
-                        ext = &ext[1..]
+}
+
+impl Iterator for PathIterator {
+    type Item = Vec<PathBuf>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.buffer.clear();
+        while self.buffer.len() < VEC_LENGTH_LIMIT as usize {
+            if let Some(entry) = self.walker.next() {
+                if self.matches_filter(&entry) {
+                    self.buffer.push(entry.path().to_path_buf());
+                }
+            } else {
+                break;
+            }
+        }
+        if !self.buffer.is_empty() {
+            Some(self.buffer.clone())
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None)
+    }
+}
+
+impl PathIterator {
+    fn matches_filter(&self, entry: &walkdir::DirEntry) -> bool {
+        match &self.file_filter[..] {
+            "*" => true,
+            "?" => entry.file_type().is_file(),
+            "/" => entry.file_type().is_dir(),
+            ext => {
+                if ext.starts_with('.') {
+                    let ext = &ext[1..];
+                    if let Some(file_ext) = entry.path().extension() {
+                        file_ext.to_string_lossy().to_lowercase() == ext.to_lowercase()
+                    } else {
+                        false
                     }
+                } else {
                     if let Some(file_ext) = entry.path().extension() {
                         file_ext.to_string_lossy().to_lowercase() == ext.to_lowercase()
                     } else {
@@ -589,10 +636,12 @@ fn walk(root: PathBuf, depth: usize, file_filter: &str) -> Result<Vec<PathBuf>, 
                     }
                 }
             }
-        })
-        .map(|entry| entry.path().to_path_buf())
-        .collect::<Vec<PathBuf>>();
-    Ok(entries)
+        }
+    }
+}
+
+fn walk(root: PathBuf, depth: usize, file_filter: &str) -> PathIterator {
+    PathIterator::new(root, depth, file_filter)
 }
 
 #[tauri::command]
@@ -608,29 +657,31 @@ async fn foresights(
     count: i8,
 ) -> Result<(), String> {
     let mut serial_number = 1;
-    let paths = walk(root, depth, file_filter)?;
+    let paths = walk(root, depth, file_filter);
 
     let mut batch = Vec::new();
-    for path in paths {
-        let new_replacement = replacement_handler(replacement, serial_number)?;
+    for paths_batch in paths {
+        for path in paths_batch {
+            let new_replacement = replacement_handler(replacement, serial_number)?;
 
-        let (original_path, original_name, target_path, target_name) = foresight(
-            &path,
-            pattern.as_str(),
-            &new_replacement,
-            use_regex,
-            target.parse().unwrap_or(RenameTarget::NAME),
-            count,
-        )?;
-        if original_path != target_path {
-            serial_number += 1;
-        }
-        batch.push((original_path, original_name, target_path, target_name));
+            let (original_path, original_name, target_path, target_name) = foresight(
+                &path, // 这里 path 是 PathBuf 类型，可以自动借用为 &Path
+                pattern.as_str(),
+                &new_replacement,
+                use_regex,
+                target.parse().unwrap_or(RenameTarget::NAME),
+                count,
+            )?;
+            if original_path != target_path {
+                serial_number += 1;
+            }
+            batch.push((original_path, original_name, target_path, target_name));
 
-        if batch.len() == 100 {
-            let event = json!(batch);
-            app_handle.emit("foresights_event", event).unwrap();
-            batch.clear();
+            if batch.len() == VEC_LENGTH_LIMIT as usize {
+                let event = json!(batch);
+                app_handle.emit("foresights_event", event).unwrap();
+                batch.clear();
+            }
         }
     }
 
