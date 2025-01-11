@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -37,50 +37,72 @@
           <div class="row">
             <label for="root-input">文件夹：</label>
             <div class="cell fixed-cell">
-              <input type="text" id="root-input" placeholder="选择文件夹">
+              <input type="text" id="root-input" placeholder="选择文件夹" />
             </div>
             <button type="button" id="browse-button">浏览</button>
           </div>
           <div class="row">
             <label for="pattern">匹配模式：</label>
             <div class="cell flex-cell">
-              <input type="text" id="pattern" placeholder="被替换的文字或正则表达式">
+              <input
+                type="text"
+                id="pattern-input"
+                placeholder="被替换的文字或正则表达式"
+              />
               <span class="vilidity" data-hint="无效的正则表达式"></span>
             </div>
           </div>
           <div class="row">
             <label for="replacement">替换文字：</label>
             <div class="cell flex-cell">
-              <input type="text" id="replacement">
+              <input type="text" id="replacement-input" />
             </div>
           </div>
         </div>
         <div class="grid fixed-grid">
           <div class="row">
             <div class="row-item">
-              <input type="checkbox" id="use-regex">启用正则
+              <input type="checkbox" id="use-regex" />启用正则
             </div>
             <div class="row-item">
               <label for="depth">递归深度：</label>
-              <input type="number" id="depth" min="0" max="99" value="0" required>
+              <input
+                type="number"
+                id="depth-number"
+                min="0"
+                max="99"
+                value="1"
+                required
+              />
             </div>
             <div class="row-item">
               <label for="replace-all">从左至右替换全部：</label>
-              <input type="number" id="replace-all" min="-9" max="9" value="0">
+              <input
+                type="number"
+                id="count-number"
+                min="-9"
+                max="9"
+                value="0"
+              />
             </div>
           </div>
           <div class="row">
             <div class="row-item">
               <label for="target">作用目标：</label>
-              <select id="target">
-                  <option value="NAME">文件名</option>
-                  <option value="STEM">文件干</option>
-                  <option value="SUFFIX">扩展名</option>
+              <select id="target-select">
+                <option value="NAME">文件名</option>
+                <option value="STEM">文件干</option>
+                <option value="SUFFIX">扩展名</option>
               </select>
             </div>
             <div class="row-item">
-              <input type="checkbox" id="rename-folder" checked>
-              <span>文件夹改名</span>
+              <label for="filter-input">筛选器：</label>
+              <input
+                type="text"
+                id="filter-input"
+                value="*"
+                pattern="[\-A-Za-z0-9_\*\.\?\/]"
+              />
             </div>
             <div class="row-item">
               <button type="button" id="execute-btn">执行</button>
@@ -89,7 +111,7 @@
         </div>
       </form>
       <div id="result-area">
-          <!-- <textarea id="result-text" readonly></textarea> -->
+        <!-- <textarea id="result-text" readonly></textarea> -->
       </div>
     </main>
   </body>

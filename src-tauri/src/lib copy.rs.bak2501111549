@@ -1,5 +1,6 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use tauri::Manager;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -89,13 +90,14 @@ fn replace_with_count(
     pattern: &str,
     replacement: &str,
     count: i8,
-) -> Result<(String,String), String> {
+) -> Result<(String, String, String), String> {
     if use_regex {
         if let Ok(regex) = Regex::new(pattern) {
             match count {
                 0 => {
                     let mut highlighted_parts = Vec::new();
                     let mut replaced_parts = Vec::new();
+                    let mut highlighted_replaced_parts = Vec::new();
                     let mut remaining_text = text;
                     let mut count = 1;
 
@@ -105,11 +107,26 @@ fn replace_with_count(
                             let (left, right) = remaining_text.split_at(end);
                             let replaced_left = regex.replace(&left, replacement);
                             let highlighted_left = regex.replace(&left, |c: &regex::Captures| {
-                                format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, c.get(0).unwrap().as_str(), count.to_string()) 
+                                format!(
+                                    r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                    c.get(0).unwrap().as_str(),
+                                    count.to_string()
+                                )
                             });
+                            let highlighted_replaced_left = regex
+                                .replace(
+                                    &left,
+                                    format!(
+                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                        replacement,
+                                        count.to_string()
+                                    ),
+                                )
+                                .to_string();
 
                             replaced_parts.push(replaced_left.to_string());
                             highlighted_parts.push(highlighted_left.to_string());
+                            highlighted_replaced_parts.push(highlighted_replaced_left);
 
                             remaining_text = right;
                             count += 1;
@@ -124,16 +141,19 @@ fn replace_with_count(
                     if !remaining_text.is_empty() {
                         highlighted_parts.push(remaining_text.to_string());
                         replaced_parts.push(remaining_text.to_string());
+                        highlighted_replaced_parts.push(remaining_text.to_string());
                     }
 
                     let highlighted = highlighted_parts.concat();
                     let replaced = replaced_parts.concat();
+                    let highlighted_replaced = highlighted_replaced_parts.concat();
 
-                    Ok((highlighted, replaced))
+                    Ok((highlighted, replaced, highlighted_replaced))
                 }
                 mut n if n > 0 => {
                     let mut highlighted_parts = Vec::new();
                     let mut replaced_parts = Vec::new();
+                    let mut highlighted_replaced_parts = Vec::new();
                     let mut remaining_text = text;
                     let mut count = 1;
 
@@ -143,11 +163,26 @@ fn replace_with_count(
                             let (left, right) = remaining_text.split_at(end);
                             let replaced_left = regex.replace(&left, replacement);
                             let highlighted_left = regex.replace(&left, |c: &regex::Captures| {
-                                format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, c.get(0).unwrap().as_str(), count.to_string()) 
+                                format!(
+                                    r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                    c.get(0).unwrap().as_str(),
+                                    count.to_string()
+                                )
                             });
+                            let highlighted_replaced_left = regex
+                                .replace(
+                                    &left,
+                                    format!(
+                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                        replacement,
+                                        count.to_string()
+                                    ),
+                                )
+                                .to_string();
 
                             replaced_parts.push(replaced_left.to_string());
                             highlighted_parts.push(highlighted_left.to_string());
+                            highlighted_replaced_parts.push(highlighted_replaced_left);
 
                             remaining_text = right;
                             n -= 1;
@@ -163,16 +198,19 @@ fn replace_with_count(
                     if !remaining_text.is_empty() {
                         highlighted_parts.push(remaining_text.to_string());
                         replaced_parts.push(remaining_text.to_string());
+                        highlighted_replaced_parts.push(remaining_text.to_string());
                     }
 
                     let highlighted = highlighted_parts.concat();
                     let replaced = replaced_parts.concat();
+                    let highlighted_replaced = highlighted_replaced_parts.concat();
 
-                    Ok((highlighted, replaced))
+                    Ok((highlighted, replaced, highlighted_replaced))
                 }
                 mut n => {
                     let mut highlighted_parts = Vec::new();
                     let mut replaced_parts = Vec::new();
+                    let mut highlighted_replaced_parts = Vec::new();
                     let mut remaining_text = text;
                     let mut count = 1;
 
@@ -181,12 +219,33 @@ fn replace_with_count(
                             let start = match_.start();
                             let (left, right) = remaining_text.split_at(start);
                             let replaced_right = regex.replace(&right, replacement);
+                            // let highlighted_wrapper = regex.replace(&right, |c: &regex::Captures| {
+                            //     format!(r#"<span class="highlight">{}<<span><sup>{}<<sup>"#, c.get(0).unwrap().as_str(), count.to_string())
+                            // });
+                            // let highlighted_right = regex.replace(&right, highlighted_wrapper);
+                            // let highlighted_replaced_right = regex
+                            //     .replace(&right, format!(r#"<span class="highlight">{}<<span><sup>{}<<sup>"#, replacement, count.to_string())).to_string();
                             let highlighted_right = regex.replace(&right, |c: &regex::Captures| {
-                                format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, c.get(0).unwrap().as_str(), count.to_string()) 
+                                format!(
+                                    r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                    c.get(0).unwrap().as_str(),
+                                    count.to_string()
+                                )
                             });
+                            let highlighted_replaced_right = regex
+                                .replace(
+                                    &right,
+                                    format!(
+                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                        replacement,
+                                        count.to_string()
+                                    ),
+                                )
+                                .to_string();
 
                             highlighted_parts.push(highlighted_right.to_string());
                             replaced_parts.push(replaced_right.to_string());
+                            highlighted_replaced_parts.push(highlighted_replaced_right);
 
                             remaining_text = left;
                             n += 1;
@@ -202,24 +261,31 @@ fn replace_with_count(
                     if !remaining_text.is_empty() {
                         highlighted_parts.push(remaining_text.to_string());
                         replaced_parts.push(remaining_text.to_string());
+                        highlighted_replaced_parts.push(remaining_text.to_string());
                     }
 
                     highlighted_parts.reverse();
                     replaced_parts.reverse();
+                    highlighted_replaced_parts.reverse();
                     let highlighted = highlighted_parts.concat();
                     let replaced = replaced_parts.concat();
+                    let highlighted_replaced = highlighted_replaced_parts.concat();
 
-                    Ok((highlighted, replaced))
+                    Ok((highlighted, replaced, highlighted_replaced))
                 }
             }
         } else {
-            Ok((text.to_string(), text.to_string()))
+            Ok((text.to_string(), text.to_string(), text.to_string()))
         }
     } else {
+        if pattern.is_empty() {
+            return Ok((text.to_string(), text.to_string(), text.to_string()))
+        }
         match count {
             0 => {
                 let mut highlighted_parts = Vec::new();
                 let mut replaced_parts = Vec::new();
+                let mut highlighted_replaced_parts: Vec<String> = Vec::new();
                 let mut remaining_text = text;
                 let mut count = 1;
 
@@ -227,12 +293,25 @@ fn replace_with_count(
                     if let Some(start) = remaining_text.find(pattern) {
                         let end = start + pattern.len();
                         let (left, right) = remaining_text.split_at(end);
-                        let highlight_replacement = format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, pattern, count.to_string());
                         let replaced_left = left.replace(pattern, replacement);
-                        let highlighted_left = left.replace(pattern, highlight_replacement.as_str());
+                        let highlighted_pattern = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            pattern,
+                            count.to_string()
+                        );
+                        let highlighted_left = left.replace(pattern, highlighted_pattern.as_str());
+                        let highlighted_replacement = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            replacement,
+                            count.to_string()
+                        );
+                        let highlighted_replaced_left = left
+                            .replace(&pattern, highlighted_replacement.as_str())
+                            .to_string();
 
                         replaced_parts.push(replaced_left);
                         highlighted_parts.push(highlighted_left);
+                        highlighted_replaced_parts.push(highlighted_replaced_left);
 
                         remaining_text = right;
                         count += 1;
@@ -244,16 +323,19 @@ fn replace_with_count(
                 if !remaining_text.is_empty() {
                     highlighted_parts.push(remaining_text.to_string());
                     replaced_parts.push(remaining_text.to_string());
+                    highlighted_replaced_parts.push(remaining_text.to_string());
                 }
 
                 let highlighted = highlighted_parts.concat();
                 let replaced = replaced_parts.concat();
-            
-                Ok((highlighted, replaced))
+                let highlighted_replaced = highlighted_replaced_parts.concat();
+
+                Ok((highlighted, replaced, highlighted_replaced))
             }
             mut n if n > 0 => {
                 let mut highlighted_parts = Vec::new();
                 let mut replaced_parts = Vec::new();
+                let mut highlighted_replaced_parts: Vec<String> = Vec::new();
                 let mut remaining_text = text;
                 let mut count = 1;
 
@@ -261,12 +343,25 @@ fn replace_with_count(
                     if let Some(start) = remaining_text.find(pattern) {
                         let end = start + pattern.len();
                         let (left, right) = remaining_text.split_at(end);
-                        let highlight_replacement = format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, pattern, count.to_string());
                         let replaced_left = left.replace(pattern, replacement);
-                        let highlighted_left = left.replace(pattern, highlight_replacement.as_str());
+                        let highlighted_pattern = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            pattern,
+                            count.to_string()
+                        );
+                        let highlighted_left = left.replace(pattern, highlighted_pattern.as_str());
+                        let highlight_replacement = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            replacement,
+                            count.to_string()
+                        );
+                        let highlighted_replaced_left = left
+                            .replace(&pattern, highlight_replacement.as_str())
+                            .to_string();
 
                         replaced_parts.push(replaced_left);
                         highlighted_parts.push(highlighted_left);
+                        highlighted_replaced_parts.push(highlighted_replaced_left);
 
                         remaining_text = right;
                         n -= 1;
@@ -279,16 +374,19 @@ fn replace_with_count(
                 if !remaining_text.is_empty() {
                     highlighted_parts.push(remaining_text.to_string());
                     replaced_parts.push(remaining_text.to_string());
+                    highlighted_replaced_parts.push(remaining_text.to_string());
                 }
 
                 let highlighted = highlighted_parts.concat();
                 let replaced = replaced_parts.concat();
-            
-                Ok((highlighted, replaced))
+                let highlighted_replaced = highlighted_replaced_parts.concat();
+
+                Ok((highlighted, replaced, highlighted_replaced))
             }
             mut n => {
                 let mut highlighted_parts = Vec::new();
                 let mut replaced_parts = Vec::new();
+                let mut highlighted_replaced_parts = Vec::new();
                 let mut remaining_text = text;
                 let mut count = 1;
 
@@ -296,11 +394,25 @@ fn replace_with_count(
                     if let Some(pos) = remaining_text.rfind(pattern) {
                         let (left, right) = remaining_text.split_at(pos);
                         let replaced_right = right.replace(pattern, replacement);
-                        let highlight_replacement = format!(r#"<span class="highlight">{}</span><sup>{}</sup>"#, pattern, count.to_string());
-                        let highlighted_right = right.replace(pattern, highlight_replacement.as_str());
+                        let highlighted_pattern = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            pattern,
+                            count.to_string()
+                        );
+                        let highlighted_right =
+                            right.replace(pattern, highlighted_pattern.as_str());
+                        let highlighted_replacement = format!(
+                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                            replacement,
+                            count.to_string()
+                        );
+                        let highlighted_replaced_right = right
+                            .replace(&pattern, &highlighted_replacement)
+                            .to_string();
 
                         highlighted_parts.push(highlighted_right);
                         replaced_parts.push(replaced_right);
+                        highlighted_replaced_parts.push(highlighted_replaced_right);
 
                         remaining_text = left;
                         n += 1;
@@ -313,14 +425,17 @@ fn replace_with_count(
                 if !remaining_text.is_empty() {
                     highlighted_parts.push(remaining_text.to_string());
                     replaced_parts.push(remaining_text.to_string());
+                    highlighted_replaced_parts.push(remaining_text.to_string());
                 }
 
                 highlighted_parts.reverse();
                 replaced_parts.reverse();
+                highlighted_replaced_parts.reverse();
                 let highlighted = highlighted_parts.concat();
                 let replaced = replaced_parts.concat();
-            
-                Ok((highlighted, replaced))
+                let highlighted_replaced = highlighted_replaced_parts.concat();
+
+                Ok((highlighted, replaced, highlighted_replaced))
             }
         }
     }
@@ -347,102 +462,131 @@ fn foresight(
     target: RenameTarget,
     count: i8,
 ) -> Result<(String, String, String, String), String> {
+    let default_result = (
+        path.to_str().unwrap_or("").to_string(),
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("")
+            .to_string(),
+        path.to_str().unwrap_or("").to_string(),
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("")
+            .to_string(),
+    );
     if !path.exists() {
-        return Ok((
-            path.to_str().unwrap_or("").to_string(), 
-            path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-            path.to_str().unwrap_or("").to_string(), 
-            path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-        ));
+        return Ok(default_result);
     }
 
-    let (original_text, new_text, original_name, new_name) = match target {
+    let (original_path, original_name, target_path, target_name) = match target {
         RenameTarget::NAME => {
             if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                let (highlighted, replaced) =
-                    replace_with_count(use_regex, name, pattern, replacement, count, )?;
+                let (highlighted, replaced, highlighted_replaced) =
+                    replace_with_count(use_regex, name, pattern, replacement, count)?;
                 (
-                    path.to_str().unwrap_or("").to_string(), 
-                    highlighted.to_string(), 
-                    path.with_file_name(&replaced).to_str().unwrap_or("").to_string(),
-                    path.with_file_name(&replaced).file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
+                    path.to_str().unwrap_or("").to_string(),
+                    highlighted.to_string().replace("<<", "</"),
+                    path.with_file_name(&replaced)
+                        .to_str()
+                        .unwrap_or("")
+                        .to_string(),
+                    highlighted_replaced.to_string().replace("<<", "</"),
                 )
             } else {
-                return Ok((
-                    path.to_str().unwrap_or("").to_string(), 
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-                    path.to_str().unwrap_or("").to_string(), 
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-                ));
+                return Ok(default_result);
             }
         }
         RenameTarget::STEM => {
             if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                let (highlighted, replaced) =
-                    replace_with_count(use_regex,stem, pattern, replacement, count as i8, )?;
+                let (highlighted, replaced, highlighted_replaced) =
+                    replace_with_count(use_regex, stem, pattern, replacement, count as i8)?;
                 (
-                    path.to_str().unwrap_or("").to_string(), 
-                    with_stem(path, &highlighted)?.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(), 
-                    with_stem(path, &replaced)?.to_str().unwrap_or("").to_string(),
-                    with_stem(path, &replaced)?.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
+                    path.to_str().unwrap_or("").to_string(),
+                    with_stem(path, &highlighted)?
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string()
+                        .replace("<<", "</"),
+                    with_stem(path, &replaced)?
+                        .to_str()
+                        .unwrap_or("")
+                        .to_string(),
+                    with_stem(path, &highlighted_replaced)?
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string()
+                        .replace("<<", "</"),
                 )
             } else {
-                return Ok((
-                    path.to_str().unwrap_or("").to_string(), 
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-                    path.to_str().unwrap_or("").to_string(),
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-                ));
+                return Ok(default_result);
             }
         }
         RenameTarget::SUFFIX => {
             if let Some(suffix) = path.extension().and_then(|s| s.to_str()) {
-                let (highlighted, replaced) =
-                    replace_with_count(use_regex,suffix, pattern, replacement, count as i8, )?;
+                let (highlighted, replaced, highlighted_replaced) =
+                    replace_with_count(use_regex, suffix, pattern, replacement, count as i8)?;
                 (
-                    path.to_str().unwrap_or("").to_string(), 
-                    path.with_extension(highlighted).file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(), 
-                    path.with_extension(&replaced).to_str().unwrap_or("").to_string(),
-                    path.with_extension(&replaced).file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
+                    path.to_str().unwrap_or("").to_string(),
+                    path.with_extension(highlighted)
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string()
+                        .replace("<<", "</"),
+                    path.with_extension(&replaced)
+                        .to_str()
+                        .unwrap_or("")
+                        .to_string(),
+                    path.with_extension(&highlighted_replaced)
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string()
+                        .replace("<<", "</"),
                 )
             } else {
-                return Ok((
-                    path.to_str().unwrap_or("").to_string(), 
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(), 
-                    path.to_str().unwrap_or("").to_string(),
-                    path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(), 
-                ));
+                return Ok(default_result);
             }
         }
     };
 
-    let new_path = Path::new(&new_text);
+    let new_path = Path::new(&target_path);
     if new_path == path {
-        return Ok((
-            path.to_str().unwrap_or("").to_string(), 
-            path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-            path.to_str().unwrap_or("").to_string(), 
-            path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string(),
-        ));
+        return Ok(default_result);
     }
 
     if new_path.exists() {
         return Err("Target path already exists".to_string());
     }
 
-    Ok((original_text, new_text, original_name, new_name))
+    Ok((original_path, original_name, target_path, target_name))
 }
 
-fn walk(root: PathBuf, depth: usize, file_only: bool) -> Result<Vec<PathBuf>, String> {
-    let entries = WalkDir::new(root)
-        .max_depth(depth)
+fn walk(root: PathBuf, depth: usize, file_filter: &str) -> Result<Vec<PathBuf>, String> {
+    let mut builder = WalkDir::new(root);
+    if depth > 0 {
+        builder = builder.max_depth(depth);
+    }
+    let entries = builder
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|entry| {
-            if file_only {
-                entry.file_type().is_file()
-            } else {
-                entry.file_type().is_file() || entry.file_type().is_dir()
+        .filter(move|entry| {
+            match &file_filter[..] {
+                "*" => true,
+                "?" => entry.file_type().is_file(),
+                "/" => entry.file_type().is_dir(),
+                mut ext => {
+                    if ext.starts_with('.') {
+                        ext = &ext[1..]
+                    }
+                    if let Some(file_ext) = entry.path().extension() {
+                        file_ext.to_string_lossy().to_lowercase() == ext.to_lowercase()
+                    } else {
+                        false
+                    }
+                }
             }
         })
         .map(|entry| entry.path().to_path_buf())
@@ -454,8 +598,8 @@ fn walk(root: PathBuf, depth: usize, file_only: bool) -> Result<Vec<PathBuf>, St
 async fn foresights(
     root: PathBuf,
     depth: usize,
-    file_only: bool,
-    pattern: &str,
+    file_filter: &str,
+    pattern: String,
     replacement: &str,
     use_regex: bool,
     target: &str,
@@ -463,14 +607,14 @@ async fn foresights(
 ) -> Result<Vec<(String, String, String, String)>, String> {
     let mut results: Vec<(String, String, String, String)> = Vec::new();
     let mut serial_number = 1;
-    let paths = walk(root, depth, file_only)?;
+    let paths = walk(root, depth, file_filter)?;
 
     for path in paths {
         let new_replacement = replacement_handler(replacement, serial_number)?;
 
         let (original_path, original_name, target_path, target_name) = foresight(
             &path,
-            pattern,
+            pattern.as_str(),
             &new_replacement,
             use_regex,
             target.parse().unwrap_or(RenameTarget::NAME),
@@ -486,11 +630,8 @@ async fn foresights(
 }
 
 #[tauri::command]
-async fn check_regex(pattern: &str) -> Result<bool, String> {
-    match Regex::new(pattern) {
-        Ok(_) => Ok(true),
-        Err(_) => Ok(false),
-    }
+async fn validate_pattern(pattern: String) -> bool {
+    Regex::new(pattern.as_str()).is_ok()
 }
 
 #[tauri::command]
@@ -510,13 +651,15 @@ async fn renames(pathmap: Vec<(String, String)>) -> Result<Vec<(String, String)>
     Ok(results)
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            let _ = app.get_webview_window("main").expect("No main window").set_focus();
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![foresights, check_regex, renames])
+        .invoke_handler(tauri::generate_handler![foresights, validate_pattern, renames])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

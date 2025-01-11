@@ -1,10 +1,11 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use tauri::Manager;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use walkdir::WalkDir;
+use tauri::{AppHandle, Emitter, Manager};
+use serde_json::json;
 
 #[derive(Deserialize, Serialize)]
 enum RenameTarget {
@@ -278,6 +279,9 @@ fn replace_with_count(
             Ok((text.to_string(), text.to_string(), text.to_string()))
         }
     } else {
+        if pattern.is_empty() {
+            return Ok((text.to_string(), text.to_string(), text.to_string()))
+        }
         match count {
             0 => {
                 let mut highlighted_parts = Vec::new();
@@ -561,16 +565,29 @@ fn foresight(
     Ok((original_path, original_name, target_path, target_name))
 }
 
-fn walk(root: PathBuf, depth: usize, file_only: bool) -> Result<Vec<PathBuf>, String> {
-    let entries = WalkDir::new(root)
-        .max_depth(depth)
+fn walk(root: PathBuf, depth: usize, file_filter: &str) -> Result<Vec<PathBuf>, String> {
+    let mut builder = WalkDir::new(root);
+    if depth > 0 {
+        builder = builder.max_depth(depth);
+    }
+    let entries = builder
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|entry| {
-            if file_only {
-                entry.file_type().is_file()
-            } else {
-                entry.file_type().is_file() || entry.file_type().is_dir()
+        .filter(move|entry| {
+            match &file_filter[..] {
+                "*" => true,
+                "?" => entry.file_type().is_file(),
+                "/" => entry.file_type().is_dir(),
+                mut ext => {
+                    if ext.starts_with('.') {
+                        ext = &ext[1..]
+                    }
+                    if let Some(file_ext) = entry.path().extension() {
+                        file_ext.to_string_lossy().to_lowercase() == ext.to_lowercase()
+                    } else {
+                        false
+                    }
+                }
             }
         })
         .map(|entry| entry.path().to_path_buf())
@@ -580,25 +597,26 @@ fn walk(root: PathBuf, depth: usize, file_only: bool) -> Result<Vec<PathBuf>, St
 
 #[tauri::command]
 async fn foresights(
+    app_handle: AppHandle,
     root: PathBuf,
     depth: usize,
-    file_only: bool,
-    pattern: &str,
+    file_filter: &str,
+    pattern: String,
     replacement: &str,
     use_regex: bool,
     target: &str,
     count: i8,
-) -> Result<Vec<(String, String, String, String)>, String> {
-    let mut results: Vec<(String, String, String, String)> = Vec::new();
+) -> Result<(), String> {
     let mut serial_number = 1;
-    let paths = walk(root, depth, file_only)?;
+    let paths = walk(root, depth, file_filter)?;
 
+    let mut batch = Vec::new();
     for path in paths {
         let new_replacement = replacement_handler(replacement, serial_number)?;
 
         let (original_path, original_name, target_path, target_name) = foresight(
             &path,
-            pattern,
+            pattern.as_str(),
             &new_replacement,
             use_regex,
             target.parse().unwrap_or(RenameTarget::NAME),
@@ -607,18 +625,26 @@ async fn foresights(
         if original_path != target_path {
             serial_number += 1;
         }
-        results.push((original_path, original_name, target_path, target_name));
+        batch.push((original_path, original_name, target_path, target_name));
+
+        if batch.len() == 100 {
+            let event = json!(batch);
+            app_handle.emit("foresights_event", event).unwrap();
+            batch.clear();
+        }
     }
 
-    Ok(results)
+    if !batch.is_empty() {
+        let event = json!(batch);
+        app_handle.emit("foresights_event", event).unwrap();
+    }
+
+    Ok(())
 }
 
 #[tauri::command]
-async fn check_regex(pattern: &str) -> Result<bool, String> {
-    match Regex::new(pattern) {
-        Ok(_) => Ok(true),
-        Err(_) => Ok(false),
-    }
+async fn validate_pattern(pattern: String) -> bool {
+    Regex::new(pattern.as_str()).is_ok()
 }
 
 #[tauri::command]
@@ -646,7 +672,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![foresights, check_regex, renames])
+        .invoke_handler(tauri::generate_handler![foresights, validate_pattern, renames])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
