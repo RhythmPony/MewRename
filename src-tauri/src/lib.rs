@@ -29,32 +29,34 @@ impl FromStr for RenameTarget {
     }
 }
 
-fn left_pad(s: &str, width: usize, fill_char: char) -> Result<String, String> {
-    if s.len() >= width {
-        return Ok(s.to_string());
+fn pad(s: &str, width: i8, fill_char: char) -> String {
+    let abs_width = width.abs() as usize;
+    if s.len() >= abs_width {
+        return s.to_string();
     }
-    let padding = width - s.len();
-    let padding_str = fill_char.to_string().repeat(padding);
-    Ok(format!("{}{}", padding_str, s))
-}
-
-fn right_pad(s: &str, width: usize, fill_char: char) -> Result<String, String> {
-    if s.len() >= width {
-        return Ok(s.to_string());
+    let padding = abs_width - s.len();
+    let mut padded = String::with_capacity(abs_width);
+    match width {
+        n if n >= 0 => {
+            padded.push_str(&fill_char.to_string().repeat(padding));
+            padded.push_str(s);
+        }
+        _ => {
+            padded.push_str(s);
+            padded.push_str(&fill_char.to_string().repeat(padding));
+        }
     }
-    let padding = width - s.len();
-    let padding_str = fill_char.to_string().repeat(padding);
-    Ok(format!("{}{}", s, padding_str))
+    padded
 }
 
 fn replacement_handler(replacement: &str, serial_number: i64) -> Result<String, String> {
     let mut new_replacement = replacement.to_string();
-    let pattern = Regex::new(r"(@?)<([A-Za-z0-9_-]?)enum(-?[1-9]?)>").unwrap();
+    let pattern = Regex::new(r"(@?)<([A-Za-z0-9_-]?)enum(-?[1-9]?)>")
+        .map_err(|e| format!("Failed to compile regex: {}", e))?;
 
     if let Some(captures) = pattern.captures(&new_replacement) {
         let captured_str = captures.get(0).map_or("", |m| m.as_str());
         let at_sign = captures.get(1).map_or(false, |m| m.as_str() == "@");
-
         let padding = captures.get(2).map_or("", |m| m.as_str());
         let number = captures.get(3).map_or("", |m| m.as_str());
 
@@ -66,17 +68,13 @@ fn replacement_handler(replacement: &str, serial_number: i64) -> Result<String, 
         } else if !number.is_empty() {
             ('0', number.parse::<i8>().unwrap_or(1))
         } else {
-            (' ', 0)
+            ('0', 0)
         };
 
         let padded_serial = if at_sign {
             captured_str[1..].to_string()
         } else {
-            if number >= 0 {
-                left_pad(&serial_number.to_string(), number as usize, padding)?
-            } else {
-                right_pad(&serial_number.to_string(), -number as usize, padding)?
-            }
+            pad(&serial_number.to_string(), number, padding)
         };
 
         new_replacement = pattern
@@ -222,12 +220,7 @@ fn replace_with_count(
                             let start = match_.start();
                             let (left, right) = remaining_text.split_at(start);
                             let replaced_right = regex.replace(&right, replacement);
-                            // let highlighted_wrapper = regex.replace(&right, |c: &regex::Captures| {
-                            //     format!(r#"<span class="highlight">{}<<span><sup>{}<<sup>"#, c.get(0).unwrap().as_str(), count.to_string())
-                            // });
-                            // let highlighted_right = regex.replace(&right, highlighted_wrapper);
-                            // let highlighted_replaced_right = regex
-                            //     .replace(&right, format!(r#"<span class="highlight">{}<<span><sup>{}<<sup>"#, replacement, count.to_string())).to_string();
+
                             let highlighted_right = regex.replace(&right, |c: &regex::Captures| {
                                 format!(
                                     r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
