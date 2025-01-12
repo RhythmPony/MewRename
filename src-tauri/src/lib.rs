@@ -1,6 +1,6 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::fs;
+use tokio::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use walkdir::WalkDir;
@@ -668,21 +668,20 @@ async fn validate_pattern(pattern: String) -> bool {
 }
 
 #[tauri::command]
-async fn renames(pathmap: Vec<(String, String)>) -> Result<Vec<(String, String)>, String> {
-    let mut results: Vec<(String, String)> = Vec::new();
-    for (original, target) in pathmap {
-        if let Ok(canonicalized_path) = fs::canonicalize(&original) {
-            if let Ok(canonicalized_new_path) = fs::canonicalize(&target) {
-                if canonicalized_path != canonicalized_new_path {
-                    if let Err(_) = fs::rename(&original, &target) {
-                        results.push((original, target));
-                    }
-                }
-            }
-        }
+async fn rename(original_path: String, target_path: String) -> bool {
+    let original_path = PathBuf::from(original_path);
+    let target_path = PathBuf::from(target_path);
+
+    if !original_path.exists() {
+        return false;
     }
-    Ok(results)
+
+    match fs::rename(&original_path, &target_path).await {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -692,7 +691,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![foresight_with_serial, foresights, validate_pattern, renames])
+        .invoke_handler(tauri::generate_handler![foresight_with_serial, foresights, validate_pattern, rename])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

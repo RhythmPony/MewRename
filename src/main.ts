@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
 
 let rootInput: HTMLInputElement | null;
@@ -13,6 +13,7 @@ let countNumber: HTMLInputElement | null;
 let filterInput: HTMLInputElement | null;
 let resultArea: HTMLDivElement | null;
 let resultTbody: HTMLTableSectionElement | null;
+let executeButton: HTMLButtonElement | null;
 let pending = false;
 
 type PathInfo = [string, string, string, string];
@@ -84,10 +85,10 @@ async function initTable() {
 }
 
 async function addDataRows(data: [string, string, string, string][]) {
-  data.forEach(([originPath, originName, targetPath, targetName]) => {
+  data.forEach(([originalPath, originalName, targetPath, targetName]) => {
     let row = document.createElement("tr");
     let checkboxCell = document.createElement("td");
-    let originCell = document.createElement("td");
+    let originalCell = document.createElement("td");
     let targetCell = document.createElement("td");
 
     let checkbox = document.createElement("input");
@@ -95,17 +96,17 @@ async function addDataRows(data: [string, string, string, string][]) {
     checkbox.checked = true;
     checkboxCell.appendChild(checkbox);
 
-    originCell.innerHTML = originName;
-    originCell.title = originPath;
-    originCell.dataset.path = originPath;
-    originCell.classList.add("t-cell");
+    originalCell.innerHTML = originalName;
+    originalCell.title = originalPath;
+    originalCell.dataset.path = originalPath;
+    originalCell.classList.add("t-cell");
     targetCell.innerHTML = targetName;
     targetCell.title = targetPath;
     targetCell.dataset.path = targetPath;
     targetCell.classList.add("t-cell");
 
     row.appendChild(checkboxCell);
-    row.appendChild(originCell);
+    row.appendChild(originalCell);
     row.appendChild(targetCell);
     resultTbody?.appendChild(row);
   });
@@ -170,7 +171,7 @@ async function updateForesights() {
       if (!path || path === null) {
         continue;
       }
-      const [originPath, originName, targetPath, targetName] = await invoke<
+      const [originalPath, originalName, targetPath, targetName] = await invoke<
         [string, string, string, string]
       >("foresight_with_serial", {
         path,
@@ -181,18 +182,64 @@ async function updateForesights() {
         count,
         serialNumber,
       });
-      if (originPath !== targetPath) {
+      if (originalPath !== targetPath) {
         serialNumber += 1;
       }
-      const originCell = row.children[1] as HTMLTableCellElement;
-      originCell.innerHTML = originName;
-      originCell.title = originPath;
-      originCell.dataset.path = originPath;
+      const originalCell = row.children[1] as HTMLTableCellElement;
+      originalCell.innerHTML = originalName;
+      originalCell.title = originalPath;
+      originalCell.dataset.path = originalPath;
 
       const targetCell = row.children[2] as HTMLTableCellElement;
       targetCell.innerHTML = targetName;
       targetCell.title = targetPath;
       targetCell.dataset.path = targetPath;
+    }
+    pending = false;
+  } catch (e) {
+    console.error("Error:", e);
+  }
+}
+
+async function renames() {
+  try {
+    let table = document.querySelector("#result-area table");
+    let rows = table?.querySelectorAll("tr");
+    if (!rows) {
+      return;
+    }
+
+    const reversedRows = Array.from(rows).reverse();
+
+    pending = true;
+    for (let row of reversedRows) {
+      const checkCell = row.children[0].querySelector(
+        "input[type=checkbox]"
+      ) as HTMLInputElement;
+      if (!checkCell?.checked) {
+        continue;
+      }
+      const originalCell = row.children[1] as HTMLTableCellElement;
+      let originalPath = originalCell.dataset.path;
+
+      const targetCell = row.children[2] as HTMLTableCellElement;
+      let targetPath = targetCell.dataset.path;
+      if (
+        !originalPath ||
+        originalPath === null ||
+        !targetPath ||
+        targetPath === null
+      ) {
+        continue;
+      }
+      if (originalPath === targetPath) {
+        continue;
+      }
+      const result = await invoke<[string, string, string, string]>("rename", {
+        originalPath,
+        targetPath,
+      });
+      console.log(result);
     }
     pending = false;
   } catch (e) {
@@ -248,6 +295,9 @@ window.addEventListener("DOMContentLoaded", () => {
   countNumber = document.querySelector("#count-number") as HTMLInputElement;
   filterInput = document.querySelector("#filter-input") as HTMLInputElement;
   resultArea = document.querySelector("#result-area") as HTMLDivElement;
+  executeButton = document.querySelector(
+    "#execute-button"
+  ) as HTMLButtonElement;
   initTable();
   browseButton.addEventListener("click", async (e) => {
     e.preventDefault();
@@ -294,6 +344,16 @@ window.addEventListener("DOMContentLoaded", () => {
   targetSelect.addEventListener("change", (e) => {
     e.preventDefault();
     updateForesights();
+  });
+  executeButton.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const confirmation = await confirm("此操作不可逆。确认继续？", {
+      title: "警告",
+      kind: "warning",
+    });
+    if (confirmation) {
+      renames();
+    }
   });
   listenForesights();
 });
