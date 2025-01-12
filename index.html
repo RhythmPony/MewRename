@@ -58,57 +58,61 @@
               <input type="text" id="replacement-input" />
             </div>
           </div>
+          <div class="row"></div>
         </div>
-        <div class="grid fixed-grid">
-          <div class="row">
-            <div class="row-item">
-              <input type="checkbox" id="use-regex" />启用正则
+        <details>
+          <summary>详细设置</summary>
+          <div class="grid fixed-grid">
+            <div class="row">
+              <div class="row-item">
+                <input type="checkbox" id="use-regex" />启用正则
+              </div>
+              <div class="row-item">
+                <label for="depth">递归深度：</label>
+                <input
+                  type="number"
+                  id="depth-number"
+                  min="0"
+                  max="99"
+                  value="1"
+                  required
+                />
+              </div>
+              <div class="row-item">
+                <label for="replace-all">从左至右替换全部：</label>
+                <input
+                  type="number"
+                  id="count-number"
+                  min="-9"
+                  max="9"
+                  value="0"
+                />
+              </div>
             </div>
-            <div class="row-item">
-              <label for="depth">递归深度：</label>
-              <input
-                type="number"
-                id="depth-number"
-                min="0"
-                max="99"
-                value="1"
-                required
-              />
-            </div>
-            <div class="row-item">
-              <label for="replace-all">从左至右替换全部：</label>
-              <input
-                type="number"
-                id="count-number"
-                min="-9"
-                max="9"
-                value="0"
-              />
+            <div class="row">
+              <div class="row-item">
+                <label for="target">作用目标：</label>
+                <select id="target-select">
+                  <option value="NAME">文件名</option>
+                  <option value="STEM">文件干</option>
+                  <option value="SUFFIX">扩展名</option>
+                </select>
+              </div>
+              <div class="row-item">
+                <label for="filter-input">筛选器：</label>
+                <input
+                  type="text"
+                  id="filter-input"
+                  value="*"
+                  pattern="[\-A-Za-z0-9_\*\.\?\/]"
+                />
+              </div>
+              <div class="row-item">
+                <button type="button" id="execute-btn">执行</button>
+              </div>
             </div>
           </div>
-          <div class="row">
-            <div class="row-item">
-              <label for="target">作用目标：</label>
-              <select id="target-select">
-                <option value="NAME">文件名</option>
-                <option value="STEM">文件干</option>
-                <option value="SUFFIX">扩展名</option>
-              </select>
-            </div>
-            <div class="row-item">
-              <label for="filter-input">筛选器：</label>
-              <input
-                type="text"
-                id="filter-input"
-                value="*"
-                pattern="[\-A-Za-z0-9_\*\.\?\/]"
-              />
-            </div>
-            <div class="row-item">
-              <button type="button" id="execute-btn">执行</button>
-            </div>
-          </div>
-        </div>
+        </details>
       </form>
       <div id="result-area">
         <!-- <textarea id="result-text" readonly></textarea> -->

@@ -13,10 +13,11 @@ let countNumber: HTMLInputElement | null;
 let filterInput: HTMLInputElement | null;
 let resultArea: HTMLDivElement | null;
 let resultTbody: HTMLTableSectionElement | null;
+let pending = false;
 
 type PathInfo = [string, string, string, string];
 
-async function createTable() {
+async function initTable() {
   while (resultArea?.firstChild) {
     resultArea.removeChild(resultArea.firstChild);
   }
@@ -96,9 +97,11 @@ async function addDataRows(data: [string, string, string, string][]) {
 
     originCell.innerHTML = originName;
     originCell.title = originPath;
+    originCell.dataset.path = originPath;
     originCell.classList.add("t-cell");
     targetCell.innerHTML = targetName;
     targetCell.title = targetPath;
+    targetCell.dataset.path = targetPath;
     targetCell.classList.add("t-cell");
 
     row.appendChild(checkboxCell);
@@ -108,28 +111,90 @@ async function addDataRows(data: [string, string, string, string][]) {
   });
 }
 
-async function foresights() {
+let getParams = () => {
   const root = rootInput?.value;
   const pattern = patternInput?.value || "";
   const replacement = replacementInput?.value || "";
   const useRegex = useRegexCheckbox?.checked;
-  const depth = parseInt(depthNumber?.value as string) || 1;
+  const depth =
+    parseInt(depthNumber?.value as string) === 0
+      ? 0
+      : parseInt(depthNumber?.value as string) || 1;
   const target = targetSelect?.value || "NAME";
   const count = parseInt(countNumber?.value as string) || 0;
-  const filter = filterInput?.value;
+  const fileFilter = filterInput?.value;
+  return {
+    root,
+    pattern,
+    replacement,
+    useRegex,
+    depth,
+    target,
+    count,
+    fileFilter,
+  };
+};
 
+async function foresights() {
   try {
-    let data = await invoke<[string, string, string, string][]>("foresights", {
-      root: root,
-      depth: depth,
-      fileFilter: filter,
-      pattern: pattern,
-      replacement: replacement,
-      useRegex: useRegex,
-      target: target,
-      count: count,
-    });
-    addDataRows(data);
+    if (pending) {
+      return;
+    }
+    initTable();
+    pending = true;
+    let params = getParams();
+    await invoke<[string, string, string, string][]>("foresights", params);
+  } catch (e) {
+    console.error("Error:", e);
+  }
+}
+
+async function updateForesights() {
+  try {
+    let table = document.querySelector("#result-area table");
+    let rows = table?.querySelectorAll("tr");
+    if (!rows) {
+      return;
+    }
+    const pattern = patternInput?.value || "";
+    const replacement = replacementInput?.value || "";
+    const useRegex = useRegexCheckbox?.checked;
+    const target = targetSelect?.value || "NAME";
+    const count = parseInt(countNumber?.value as string) || 0;
+    let serialNumber = 1;
+
+    pending = true;
+    for (let row of rows) {
+      let cell = row.children[1] as HTMLTableCellElement;
+      let path = cell.dataset.path;
+      if (!path || path === null) {
+        continue;
+      }
+      const [originPath, originName, targetPath, targetName] = await invoke<
+        [string, string, string, string]
+      >("foresight_with_serial", {
+        path,
+        pattern,
+        replacement,
+        useRegex,
+        target,
+        count,
+        serialNumber,
+      });
+      if (originPath !== targetPath) {
+        serialNumber += 1;
+      }
+      const originCell = row.children[1] as HTMLTableCellElement;
+      originCell.innerHTML = originName;
+      originCell.title = originPath;
+      originCell.dataset.path = originPath;
+
+      const targetCell = row.children[2] as HTMLTableCellElement;
+      targetCell.innerHTML = targetName;
+      targetCell.title = targetPath;
+      targetCell.dataset.path = targetPath;
+    }
+    pending = false;
   } catch (e) {
     console.error("Error:", e);
   }
@@ -159,9 +224,13 @@ function validatePattern() {
     });
 }
 
-async function listenTauri() {
+async function listenForesights() {
   await listen("foresights_event", (event) => {
     const data: PathInfo[] = event.payload as PathInfo[];
+    if (data === null) {
+      pending = false;
+      return;
+    }
     addDataRows(data);
   });
 }
@@ -175,12 +244,13 @@ window.addEventListener("DOMContentLoaded", () => {
   ) as HTMLInputElement;
   useRegexCheckbox = document.querySelector("#use-regex") as HTMLInputElement;
   depthNumber = document.querySelector("#depth-number") as HTMLInputElement;
-  targetSelect = document.querySelector("target-select") as HTMLSelectElement;
+  targetSelect = document.querySelector("#target-select") as HTMLSelectElement;
   countNumber = document.querySelector("#count-number") as HTMLInputElement;
   filterInput = document.querySelector("#filter-input") as HTMLInputElement;
   resultArea = document.querySelector("#result-area") as HTMLDivElement;
-  createTable();
-  browseButton.addEventListener("click", async () => {
+  initTable();
+  browseButton.addEventListener("click", async (e) => {
+    e.preventDefault();
     const root = await open({
       multiple: false,
       directory: true,
@@ -191,14 +261,39 @@ window.addEventListener("DOMContentLoaded", () => {
     rootInput.value = root;
     foresights();
   });
-  rootInput.addEventListener("blur", () => {
+  rootInput.addEventListener("blur", (e) => {
+    e.preventDefault();
     foresights();
   });
-  patternInput.addEventListener("blur", () => {
-    validatePattern();
+  depthNumber.addEventListener("change", (e) => {
+    e.preventDefault();
+    foresights();
   });
-  useRegexCheckbox.addEventListener("change", () => {
-    validatePattern();
+  filterInput.addEventListener("change", (e) => {
+    e.preventDefault();
+    foresights();
   });
-  listenTauri();
+  patternInput.addEventListener("blur", (e) => {
+    e.preventDefault();
+    validatePattern();
+    updateForesights();
+  });
+  replacementInput.addEventListener("blur", (e) => {
+    e.preventDefault();
+    updateForesights();
+  });
+  useRegexCheckbox.addEventListener("change", (e) => {
+    e.preventDefault();
+    validatePattern();
+    updateForesights();
+  });
+  countNumber.addEventListener("change", (e) => {
+    e.preventDefault();
+    updateForesights();
+  });
+  targetSelect.addEventListener("change", (e) => {
+    e.preventDefault();
+    updateForesights();
+  });
+  listenForesights();
 });
