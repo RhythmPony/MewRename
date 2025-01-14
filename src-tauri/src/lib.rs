@@ -579,7 +579,7 @@ fn foresight(
     }
 
     if new_path.exists() {
-        return Err("Target path already exists".to_string());
+        return Ok(default_result);
     }
 
     Ok((original_path, original_name, target_path, target_name))
