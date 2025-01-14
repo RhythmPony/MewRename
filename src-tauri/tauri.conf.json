@@ -16,11 +16,10 @@
         "label": "main",
         "title": "MewRename",
         "resizable": true,
-        "maximized": false,
         "minWidth": 800,
         "minHeight": 600,
         "center": true,
-        "decorations": false,
+        "decorations": true,
         "contentProtected": true
       }
     ],

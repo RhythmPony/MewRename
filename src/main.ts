@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 let rootInput: HTMLInputElement | null;
 let browseButton: HTMLButtonElement | null;
@@ -356,4 +357,63 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
   listenForesights();
+
+  document.querySelector("#nav-about")?.addEventListener("click", async () => {
+    const webview = new WebviewWindow("about-view", {
+      title: "关于 Mew Rename",
+      url: "/src/components/about.html",
+      width: 400,
+      height: 300,
+      resizable: false,
+      maximizable: false,
+      minimizable: false,
+      center: true,
+    });
+    webview.once("tauri://created", function () {
+      // webview successfully created
+    });
+    webview.once("tauri://error", function (e) {
+      // an error happened creating the webview
+    });
+  });
+
+  document.querySelector("#nav-donate")?.addEventListener("click", async () => {
+    const webview = new WebviewWindow("licence-view", {
+      title: "许可证",
+      url: "/src/components/donate.html",
+      width: 450,
+      height: 600,
+      resizable: false,
+      maximizable: false,
+      minimizable: false,
+      center: true,
+    });
+    webview.once("tauri://created", function () {
+      // webview successfully created
+    });
+    webview.once("tauri://error", function (e) {
+      // an error happened creating the webview
+    });
+  });
+
+  document
+    .querySelector("#nav-licence")
+    ?.addEventListener("click", async () => {
+      const webview = new WebviewWindow("licence-view", {
+        title: "许可证",
+        url: "/src/components/licence.html",
+        width: 600,
+        height: 450,
+        resizable: false,
+        maximizable: false,
+        minimizable: false,
+        center: true,
+      });
+      webview.once("tauri://created", function () {
+        // webview successfully created
+      });
+      webview.once("tauri://error", function (e) {
+        // an error happened creating the webview
+      });
+    });
 });

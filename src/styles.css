@@ -1,3 +1,17 @@
+:root {
+  --window-background-color: #f8f8f8;
+  --hover-border-color: #396cd8;
+  --active-border-color: #396cd8;
+  --active-background-color: #e8e8e8;
+  --normal-background-color: #ffffff;
+  --normal-text-color: #0f0f0f;
+  --faded-text-color: #8e8e8e;
+  --tbody-grid-color: #f6f6f6;
+  --thead-grid-color: #737373;
+  --highlight-text-color: #0881a3;
+  --highlight-background-color: #fde9df;
+}
+
 html,
 body {
   margin: 0;
@@ -8,8 +22,8 @@ body {
   font-family: Tahoma, Verdana, Helvetica, Arial, sans-serif;
   font-weight: normal;
   line-height: 1.5;
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
   overflow: hidden;
 
   font-synthesis: none;
@@ -17,6 +31,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 @font-face {
@@ -27,12 +46,12 @@ body {
 }
 
 a {
-  color: #646cff;
+  color: var(--faded-text-color);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #535bf2;
+  color: var(--normal-text-color);
 }
 
 h1 {
@@ -44,7 +63,7 @@ h1 {
 
 label {
   font-weight: inherit;
-  color: #0f0f0f;
+  color: var(--normal-text-color);
 }
 
 input,
@@ -56,8 +75,8 @@ textarea {
   padding: 0.4em 0.8em;
   border-radius: 8px;
   border: 1px solid transparent;
-  color: #0f0f0f;
-  background-color: #ffffff;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
   line-height: 150%;
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
@@ -85,14 +104,14 @@ td {
 
 th {
   font-weight: bold;
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-  border-left: 2px solid #737373;
-  border-right: 2px solid #737373;
+  color: var(--normal-text-color);
+  background-color: var(--window-background-color);
+  border-left: 2px solid var(--thead-grid-color);
+  border-right: 2px solid var(--thead-grid-color);
 }
 
 td {
-  border: 1px solid #f6f6f6;
+  border: 1px solid var(--tbody-grid-color);
 }
 
 th:nth-child(1),
@@ -115,19 +134,25 @@ button {
 }
 
 button:hover {
-  border-color: #396cd8;
+  border-color: var(--hover-border-color);
 }
 button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
+  border-color: var(--active-border-color);
+  background-color: var(--active-background-color);
 }
 
 details {
-  margin-bottom: 16px;
+  margin: 0;
+  background-color: var(--window-background-color);
 }
 
 summary {
   text-align: left;
+}
+
+footer {
+  height: auto;
+  padding: 0.2em 0.4em;
 }
 
 #app-title {
@@ -150,21 +175,29 @@ summary {
 }
 
 #container {
-  padding: 8px 16px;
+  padding: 0 16px;
   margin: 0 auto;
-  height: calc(100% - 32px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content max-content 1fr max-content;
+  gap: 2vh 2vw;
   text-align: center;
   box-sizing: border-box;
   overflow-y: auto;
+  background-color: var(--window-background-color);
+}
+
+#rename-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content max-content;
+  gap: 1.2vh 1.2vw;
 }
 
 .grid {
-  padding: 16px 0;
   display: grid;
-  gap: 16px 8px;
+  gap: 1.6vh 1.6vw;
   align-items: center;
   grid-template-rows: auto;
   box-sizing: border-box;
@@ -224,7 +257,6 @@ summary {
 
 #result-area {
   position: relative;
-  flex-grow: 1;
   width: 100%;
   height: auto;
   margin: 0;
@@ -232,8 +264,8 @@ summary {
   overflow-x: hidden;
   border-radius: 8px;
   border: 1px solid transparent;
-  color: #0f0f0f;
-  background-color: #ffffff;
+  color: var(--normal-text-color);
+  background-color: var(--normal-background-color);
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
   outline: none;
@@ -243,8 +275,8 @@ summary {
   display: inline-block;
   margin: 1px 2px;
   padding: 0;
-  color: #0881a3;
-  background-color: #fde9df;
+  color: var(--highlight-text-color);
+  background-color: var(--highlight-background-color);
   border-radius: 0.25em;
   border: 1px solid transparent;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
@@ -252,4 +284,43 @@ summary {
 
 .t-cell {
   text-align: left;
+}
+
+nav > a {
+  padding: 0 8px;
+}
+
+#about-me {
+  margin: 16px auto;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: start;
+}
+
+#licence {
+  display: block;
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+#donate {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+#donate .qrcode {
+  width: 100%;
+  flex-grow: 1;
+  background-image: url("/src/assets/QRcode.jpg");
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }

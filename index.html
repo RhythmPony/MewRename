@@ -3,32 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/src/styles.css" />
-    <link rel="stylesheet" href="/src/toolbar.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/src/toolbar.ts" defer></script>
+    <title>Mew Rename</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
 
   <body>
-    <div data-tauri-drag-region class="titlebar">
-      <div class="titlebar-button" id="titlebar-minimize">
-        <img
-          src="https://api.iconify.design/mdi:window-minimize.svg"
-          alt="minimize"
-        />
-      </div>
-      <div class="titlebar-button" id="titlebar-maximize">
-        <img
-          src="https://api.iconify.design/mdi:window-maximize.svg"
-          alt="maximize"
-        />
-      </div>
-      <div class="titlebar-button" id="titlebar-close">
-        <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
-      </div>
-    </div>
-
     <main id="container">
       <h1 id="app-title">MewRename</h1>
 
@@ -117,6 +97,14 @@
       <div id="result-area">
         <!-- <textarea id="result-text" readonly></textarea> -->
       </div>
+      <footer>
+        <nav>
+          <a id="nav-about">关于</a>
+          <a>帮助</a>
+          <a id="nav-donate">捐赠</a>
+          <a id="nav-licence">许可证</a>
+        </nav>
+      </footer>
     </main>
   </body>
 </html>
