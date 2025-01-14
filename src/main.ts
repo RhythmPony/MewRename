@@ -153,7 +153,7 @@ async function foresights() {
 
 async function updateForesights() {
   try {
-    let table = document.querySelector("#result-area table");
+    let table = document.querySelector("#table-container table");
     let rows = table?.querySelectorAll("tr");
     if (!rows) {
       return;
@@ -204,7 +204,7 @@ async function updateForesights() {
 
 async function renames() {
   try {
-    let table = document.querySelector("#result-area table");
+    let table = document.querySelector("#table-container table");
     let rows = table?.querySelectorAll("tr");
     if (!rows) {
       return;
@@ -295,7 +295,7 @@ window.addEventListener("DOMContentLoaded", () => {
   targetSelect = document.querySelector("#target-select") as HTMLSelectElement;
   countNumber = document.querySelector("#count-number") as HTMLInputElement;
   filterInput = document.querySelector("#filter-input") as HTMLInputElement;
-  resultArea = document.querySelector("#result-area") as HTMLDivElement;
+  resultArea = document.querySelector("#table-container") as HTMLDivElement;
   executeButton = document.querySelector(
     "#execute-button"
   ) as HTMLButtonElement;
@@ -361,7 +361,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-about")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("about-view", {
       title: "关于 Mew Rename",
-      url: "/src/components/about.html",
+      url: "/src/subpages/about.html",
       width: 400,
       height: 300,
       resizable: false,
@@ -378,10 +378,30 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelector("#nav-help")?.addEventListener("click", async () => {
+    const webview = new WebviewWindow("help-view", {
+      title: "帮助",
+      url: "/src/subpages/help.html",
+      width: 600,
+      height: 450,
+      resizable: false,
+      maximizable: false,
+      minimizable: false,
+      center: true,
+    });
+    webview.once("tauri://created", function () {
+      // webview successfully created
+    });
+    webview.once("tauri://error", function (e) {
+      console.log(e);
+      // an error happened creating the webview
+    });
+  });
+
   document.querySelector("#nav-donate")?.addEventListener("click", async () => {
-    const webview = new WebviewWindow("licence-view", {
-      title: "许可证",
-      url: "/src/components/donate.html",
+    const webview = new WebviewWindow("donate-view", {
+      title: "捐赠",
+      url: "/src/subpages/donate.html",
       width: 450,
       height: 600,
       resizable: false,
@@ -403,7 +423,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", async () => {
       const webview = new WebviewWindow("licence-view", {
         title: "许可证",
-        url: "/src/components/licence.html",
+        url: "/src/subpages/licence.html",
         width: 600,
         height: 450,
         resizable: false,

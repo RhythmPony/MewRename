@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>关于 MewRename</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <style>
+      th:nth-child(1),
+      td:nth-child(1) {
+        width: 60px;
+      }
+      td[rowspan] {
+        writing-mode: vertical-rl;
+      }
+      th:nth-child(2),
+      td:nth-child(2),
+      th:nth-child(3),
+      td:nth-child(3) {
+        width: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="container">
+      <div id="help">
+        <h2>帮助</h2>
+        <section>
+          <h3>1、文件夹</h3>
+          <p>支持绝对路径和相对路径</p>
+        </section>
+        <section>
+          <h3>2、匹配模式</h3>
+          <p>正则表达式基本语法</p>
+          <div id="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>分类</th>
+                  <th>语法</th>
+                  <th>示例</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowspan="2">特殊字符</td>
+                  <td><code>.</code></td>
+                  <td><code>a.b</code></td>
+                  <td>匹配任意单个字符（除换行符外）</td>
+                </tr>
+                <tr>
+                  <td><code>\</code></td>
+                  <td><code>\.</code></td>
+                  <td>
+                    用于转义特殊字符，使其作为普通字符匹配，如匹配点号需写为
+                    <code>\.</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td rowspan="6">限定符</td>
+                  <td><code>*</code></td>
+                  <td><code>a*</code></td>
+                  <td>匹配前面的元素 0 次或多次</td>
+                </tr>
+                <tr>
+                  <td><code>+</code></td>
+                  <td><code>a+</code></td>
+                  <td>匹配前面的元素 1 次或多次</td>
+                </tr>
+                <tr>
+                  <td><code>?</code></td>
+                  <td><code>a?</code></td>
+                  <td>匹配前面的元素 0 次或 1 次</td>
+                </tr>
+                <tr>
+                  <td><code>{n}</code></td>
+                  <td><code>a{3}</code></td>
+                  <td>匹配前面的元素 n 次</td>
+                </tr>
+                <tr>
+                  <td><code>{n,}</code></td>
+                  <td><code>a{3,}</code></td>
+                  <td>匹配前面的元素至少 n 次</td>
+                </tr>
+                <tr>
+                  <td><code>{n,m}</code></td>
+                  <td><code>a{3,5}</code></td>
+                  <td>匹配前面的元素 n 到 m 次</td>
+                </tr>
+                <tr>
+                  <td rowspan="3">集合</td>
+                  <td><code>[abc]</code></td>
+                  <td><code>[abc]</code></td>
+                  <td>匹配集合中的任意一个字符</td>
+                </tr>
+                <tr>
+                  <td><code>[a-z]</code></td>
+                  <td><code>[a-z]</code></td>
+                  <td>匹配指定范围内的任意一个字符</td>
+                </tr>
+                <tr>
+                  <td><code>[^abc]</code></td>
+                  <td><code>[^abc]</code></td>
+                  <td>匹配不在集合中的任意一个字符</td>
+                </tr>
+                <tr>
+                  <td rowspan="2">组合</td>
+                  <td><code>|</code></td>
+                  <td><code>A|B</code></td>
+                  <td>
+                    匹配 A 或者 B. 任意个正则表达式可以用 <code>|</code> 连接。
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>(abc)</code></td>
+                  <td><code>(abc)</code></td>
+                  <td>匹配括号内的整个表达式，可进行捕获</td>
+                </tr>
+                <tr>
+                  <td rowspan="4">定位符</td>
+                  <td><code>^</code></td>
+                  <td><code>^abc</code></td>
+                  <td>匹配字符串开始位置</td>
+                </tr>
+                <tr>
+                  <td><code>$</code></td>
+                  <td><code>abc$</code></td>
+                  <td>匹配字符串结束位置</td>
+                </tr>
+                <tr>
+                  <td><code>\b</code></td>
+                  <td><code>\babc\b</code></td>
+                  <td>匹配单词边界</td>
+                </tr>
+                <tr>
+                  <td><code>\B</code></td>
+                  <td><code>\Babc\B</code></td>
+                  <td>匹配非单词边界</td>
+                </tr>
+                <tr>
+                  <td rowspan="3">扩展标记法</td>
+                  <td><code>(?i)</code></td>
+                  <td><code>(?i)abc</code></td>
+                  <td>开启不区分大小写模式，对后面的表达式生效</td>
+                </tr>
+                <tr>
+                  <td><code>(?-i)</code></td>
+                  <td><code>(?-i)abc</code></td>
+                  <td>关闭不区分大小写模式，对后面的表达式生效</td>
+                </tr>
+                <tr>
+                  <td><code>(?i:abc)</code></td>
+                  <td><code>(?i:abc)</code></td>
+                  <td>仅对括号内的表达式开启不区分大小写模式</td>
+                </tr>
+                <tr>
+                  <td>捕获</td>
+                  <td><code>(abc)</code></td>
+                  <td><code>(abc)</code></td>
+                  <td>捕获括号内的匹配内容，可通过索引或命名捕获组获取</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            更多内容请参考
+            <a href="https://docs.rs/regex/latest/regex/">regex - Rust</a>
+          </p>
+        </section>
+        <section>
+          <h3>3、替换文本</h3>
+          <b>排序编号&lt;[pad_char]enum[number]&gt;</b>
+          <p>
+            对重命名的对象从1开始自动编号，并且使用[pad_char]把序号填充至[number]位。
+            其中[pad_char]为单个的大小写英文字母、数字、下划线、连字符，[number]为正负1至9。
+            如果[number]为正数则填充在序号左边，为负数则填充在序号右边。
+            如果[pad_char]为空，[number]不为空，则使用 '0' 填充。
+            如果[pad_char]不为空，[number]为空，则无视长度填充1次。
+            例如 <Aenum-4> 对重命名的对象编号为 1AAA、2AAA、...
+          </p>
+          <b>使用捕获&lt;:[number]&gt;</b>
+          <p>
+            使用匹配模式捕获的内容，[number]表示第number个捕获，有效值为0至99。
+            例如匹配模式为 ([A-Za-z]?)(\d?) 时，可以使用 &lt;:2&gt;&lt;:1&gt; 将对象路径中的字母和数字顺序调换。
+          </p>
+        </section>
+        <section>
+          <h3>4、启用正则表达式</h3>
+          <p>开关正则表达式，默认关闭。</p>
+        </section>
+        <section>
+          <h3>5、递归深度</h3>
+          <p>
+            递归查找子文件夹的深度，默认为1，仅查找当前文件夹。
+            有效范围0至99，0表示查找全部（可能造成卡顿，慎用）。
+          </p>
+        </section>
+        <section>
+          <h3>6、替换方向次数</h3>
+          <p>
+            有效范围-9至9，默认为0，从左至右替换全部。
+            正数表示从左至右替换，负数表示从右至左替换。
+          </p>
+        </section>
+        <section>
+          <h3>7、作用目标</h3>
+          <p>可选范围：文件名、文件干、文件后缀。</p>
+        </section>
+        <section>
+          <h3>8、筛选器</h3>
+          <b>按类型筛选需要重命名的对象,默认为 * ，不过滤。</b>
+          <p> * ：不过滤。</p>
+          <p> / ：仅包含文件夹。</p>
+          <p> ? ：仅包含文件。</p>
+          <p> [ext] ：[ext]为任意有效的文件后缀，按文件后缀过滤。</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

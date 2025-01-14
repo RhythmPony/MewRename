@@ -84,6 +84,13 @@ textarea {
   outline: none;
 }
 
+section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+}
+
 table {
   width: 100%;
   table-layout: fixed;
@@ -153,6 +160,11 @@ summary {
 footer {
   height: auto;
   padding: 0.2em 0.4em;
+}
+
+p {
+  text-indent: 2em;
+  text-align: justify;
 }
 
 #app-title {
@@ -255,7 +267,7 @@ footer {
   align-items: center;
 }
 
-#result-area {
+#table-container {
   position: relative;
   width: 100%;
   height: auto;
@@ -323,4 +335,11 @@ nav > a {
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+#help {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
 }
