@@ -373,6 +373,7 @@ window.addEventListener("DOMContentLoaded", () => {
       // webview successfully created
     });
     webview.once("tauri://error", function (e) {
+      console.log(e);
       // an error happened creating the webview
     });
   });
@@ -392,6 +393,7 @@ window.addEventListener("DOMContentLoaded", () => {
       // webview successfully created
     });
     webview.once("tauri://error", function (e) {
+      console.log(e);
       // an error happened creating the webview
     });
   });
@@ -413,6 +415,7 @@ window.addEventListener("DOMContentLoaded", () => {
         // webview successfully created
       });
       webview.once("tauri://error", function (e) {
+        console.log(e);
         // an error happened creating the webview
       });
     });

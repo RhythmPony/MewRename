@@ -85,6 +85,19 @@ fn replacement_handler(replacement: &str, serial_number: i64) -> Result<String, 
     Ok(new_replacement)
 }
 
+fn replace_with_captures(original: &str, replacement_caps: &regex::Captures) -> String {
+    let re = Regex::new(r"<:(\d{1,2})>").unwrap();
+    re.replace_all(original, |match_caps: &regex::Captures| {
+        let num = match_caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
+        if num < replacement_caps.len() {
+            replacement_caps.get(num).unwrap().as_str().to_string()
+        } else {
+            "<:invalid_index>".to_string()
+        }
+    })
+    .to_string()
+}
+
 fn replace_with_count(
     use_regex: bool,
     text: &str,
@@ -106,7 +119,9 @@ fn replace_with_count(
                         if let Some(match_) = regex.find(&remaining_text) {
                             let end = match_.end();
                             let (left, right) = remaining_text.split_at(end);
-                            let replaced_left = regex.replace(&left, replacement);
+                            let replaced_left = regex.replace(&left, |caps: &regex::Captures|{
+                                replace_with_captures(replacement, caps)
+                            });
                             let highlighted_left = regex.replace(&left, |c: &regex::Captures| {
                                 format!(
                                     r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
@@ -117,11 +132,13 @@ fn replace_with_count(
                             let highlighted_replaced_left = regex
                                 .replace(
                                     &left,
-                                    format!(
-                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
-                                        replacement,
-                                        count.to_string()
-                                    ),
+                                    |caps: &regex::Captures|{
+                                        format!(
+                                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                            replace_with_captures(replacement, caps),
+                                            count.to_string()
+                                        )
+                                    }
                                 )
                                 .to_string();
 
@@ -162,7 +179,9 @@ fn replace_with_count(
                         if let Some(match_) = regex.find(&remaining_text) {
                             let end = match_.end();
                             let (left, right) = remaining_text.split_at(end);
-                            let replaced_left = regex.replace(&left, replacement);
+                            let replaced_left = regex.replace(&left, |caps: &regex::Captures|{
+                                replace_with_captures(replacement, caps)
+                            });
                             let highlighted_left = regex.replace(&left, |c: &regex::Captures| {
                                 format!(
                                     r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
@@ -173,11 +192,13 @@ fn replace_with_count(
                             let highlighted_replaced_left = regex
                                 .replace(
                                     &left,
-                                    format!(
-                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
-                                        replacement,
-                                        count.to_string()
-                                    ),
+                                    |caps: &regex::Captures|{
+                                        format!(
+                                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                            replace_with_captures(replacement, caps),
+                                            count.to_string()
+                                        )
+                                    }
                                 )
                                 .to_string();
 
@@ -219,7 +240,9 @@ fn replace_with_count(
                         if let Some(match_) = regex.find_iter(&remaining_text).last() {
                             let start = match_.start();
                             let (left, right) = remaining_text.split_at(start);
-                            let replaced_right = regex.replace(&right, replacement);
+                            let replaced_right = regex.replace(&right, |caps: &regex::Captures|{
+                                replace_with_captures(replacement, caps)
+                            });
 
                             let highlighted_right = regex.replace(&right, |c: &regex::Captures| {
                                 format!(
@@ -231,11 +254,13 @@ fn replace_with_count(
                             let highlighted_replaced_right = regex
                                 .replace(
                                     &right,
-                                    format!(
-                                        r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
-                                        replacement,
-                                        count.to_string()
-                                    ),
+                                    |caps: &regex::Captures|{
+                                        format!(
+                                            r#"<span class="highlight">{}<<span><sup>{}<<sup>"#,
+                                            replace_with_captures(replacement, caps),
+                                            count.to_string()
+                                        )
+                                    }
                                 )
                                 .to_string();
 
