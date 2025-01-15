@@ -331,7 +331,7 @@ nav > a {
 #donate .qrcode {
   width: 100%;
   flex-grow: 1;
-  background-image: url("/src/assets/QRcode.jpg");
+  background-image: url("assets/QRcode.jpg");
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
