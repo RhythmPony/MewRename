@@ -1,5 +1,5 @@
 [package]
-name = "batch_rename"
+name = "mew_rename"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["Xia"]
@@ -11,7 +11,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "batch_rename_lib"
+name = "mew_rename_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
