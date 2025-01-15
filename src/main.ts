@@ -361,7 +361,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-about")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("about-view", {
       title: "关于 Mew Rename",
-      url: "public/subwindows/about.html",
+      url: "subwindows/about.html",
       width: 400,
       height: 300,
       resizable: false,
@@ -381,7 +381,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-help")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("help-view", {
       title: "帮助",
-      url: "public/subwindows/help.html",
+      url: "subwindows/help.html",
       width: 600,
       height: 450,
       resizable: false,
@@ -401,7 +401,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-donate")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("donate-view", {
       title: "捐赠",
-      url: "public/subwindows/donate.html",
+      url: "subwindows/donate.html",
       width: 450,
       height: 600,
       resizable: false,
@@ -423,7 +423,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", async () => {
       const webview = new WebviewWindow("licence-view", {
         title: "许可证",
-        url: "public/subwindows/licence.html",
+        url: "subwindows/licence.html",
         width: 600,
         height: 450,
         resizable: false,
