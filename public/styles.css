@@ -23,7 +23,7 @@ body {
   font-weight: normal;
   line-height: 1.5;
   color: var(--normal-text-color);
-  background-color: var(--normal-background-color);
+  background-color: var(--window-background-color);
   overflow: hidden;
 
   font-synthesis: none;
@@ -163,6 +163,8 @@ footer {
 }
 
 p {
+  line-height: 1.5;
+  margin: 0.5em 0;
   text-indent: 2em;
   text-align: justify;
 }
@@ -300,46 +302,4 @@ p {
 
 nav > a {
   padding: 0 8px;
-}
-
-#about-me {
-  margin: 16px auto;
-  padding: 16px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: start;
-}
-
-#licence {
-  display: block;
-  padding: 16px;
-  height: 100%;
-  overflow-y: auto;
-}
-
-#donate {
-  width: 100%;
-  height: 100%;
-  padding: 16px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-#donate .qrcode {
-  width: 100%;
-  flex-grow: 1;
-  background-image: url("assets/QRcode.jpg");
-  background-position: center;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-#help {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: start;
 }

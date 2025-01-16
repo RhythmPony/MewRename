@@ -1,5 +1,5 @@
 [package]
-name = "mew_rename"
+name = "MewRename"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["Xia"]
