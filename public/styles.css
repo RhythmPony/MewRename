@@ -265,8 +265,12 @@ p {
 
 .row-item {
   display: inline-flex;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
+}
+
+.row-item label {
+  width: max-content;
 }
 
 #table-container {
