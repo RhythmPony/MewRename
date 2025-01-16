@@ -34,11 +34,11 @@
           </div>
           <div class="row">
             <label for="replacement">替换文本：</label>
-            <div class="cell flex-cell">
+            <div class="cell fixed-cell">
               <input type="text" id="replacement-input" />
             </div>
+            <button type="button" id="execute-button">执行</button>
           </div>
-          <div class="row"></div>
         </div>
         <details>
           <summary>详细设置</summary>
@@ -87,16 +87,11 @@
                   pattern="[\-A-Za-z0-9_\*\.\?\/]"
                 />
               </div>
-              <div class="row-item">
-                <button type="button" id="execute-button">执行</button>
-              </div>
             </div>
           </div>
         </details>
       </form>
-      <div id="table-container">
-        <!-- <textarea id="result-text" readonly></textarea> -->
-      </div>
+      <div id="table-container"></div>
       <footer>
         <nav>
           <a id="nav-about">关于</a>
