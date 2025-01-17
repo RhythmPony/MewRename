@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { disableRefresh } from "./uiconfig";
 
 let rootInput: HTMLInputElement | null;
 let browseButton: HTMLButtonElement | null;
@@ -439,4 +440,6 @@ window.addEventListener("DOMContentLoaded", () => {
         // an error happened creating the webview
       });
     });
+
+  disableRefresh();
 });

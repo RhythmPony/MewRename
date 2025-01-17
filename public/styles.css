@@ -307,3 +307,7 @@ p {
 nav > a {
   padding: 0 8px;
 }
+
+.hidden {
+  display: none;
+}
