@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { disableRefresh } from "./uiconfig";
 
 let rootInput: HTMLInputElement | null;
 let browseButton: HTMLButtonElement | null;
@@ -361,7 +362,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-about")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("about-view", {
       title: "关于 Mew Rename",
-      url: "subwindows/about.html",
+      url: "./src/subwindows/about.html",
       width: 400,
       height: 300,
       resizable: false,
@@ -381,7 +382,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-help")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("help-view", {
       title: "帮助",
-      url: "subwindows/help.html",
+      url: "./src/subwindows/help.html",
       width: 600,
       height: 450,
       resizable: false,
@@ -401,7 +402,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#nav-donate")?.addEventListener("click", async () => {
     const webview = new WebviewWindow("donate-view", {
       title: "捐赠",
-      url: "subwindows/donate.html",
+      url: "./src/subwindows/donate.html",
       width: 450,
       height: 600,
       resizable: false,
@@ -423,7 +424,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", async () => {
       const webview = new WebviewWindow("licence-view", {
         title: "许可证",
-        url: "subwindows/licence.html",
+        url: "./src/subwindows/licence.html",
         width: 600,
         height: 450,
         resizable: false,
@@ -439,4 +440,6 @@ window.addEventListener("DOMContentLoaded", () => {
         // an error happened creating the webview
       });
     });
+
+  disableRefresh();
 });

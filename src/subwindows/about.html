@@ -16,6 +16,12 @@
         align-items: start;
       }
     </style>
+    <script type="module" defer>
+      import { disableRefresh } from "../uiconfig";
+      document.addEventListener("DOMContentLoaded", () => {
+        disableRefresh();
+      });
+    </script>
   </head>
   <body>
     <div id="about-me">

@@ -5,7 +5,6 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
@@ -25,6 +24,31 @@ export default defineConfig(async () => ({
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: [
+        "./index.html",
+        "./src/subwindows/about.html",
+        "./src/subwindows/donate.html",
+        "./src/subwindows/help.html",
+        "./src/subwindows/licence.html",
+      ],
+      output: {
+        entryFileNames: "js/[name]-[hash].js",
+        chunkFileNames: "js/[name]-[hash].js",
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name.endsWith(".css")) {
+            return "css/[name]-[hash].css";
+          }
+          const imgExts = ["png", "jpg", "jpeg", "gif", "svg", "webp", "ico"];
+          if (imgExts.some((ext) => assetInfo.name.endsWith(ext))) {
+            return "imgs/[name]-[hash].[ext]";
+          }
+          return "assets/[name]-[hash].[ext]";
+        },
+      },
     },
   },
 }));
