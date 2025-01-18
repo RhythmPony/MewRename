@@ -52,4 +52,4 @@ To build and release MewRename, follow these steps:
 
 ## Licence
 
-This software is released under the MIT License. You are free to use, modify, and distribute the software as long as you include the original license and copyright notice. For more details, please refer to the [LICENSE](https://kimi.moonshot.cn/chat/LICENSE) file included in the repository.
+This software is released under the MIT License. You are free to use, modify, and distribute the software as long as you include the original license and copyright notice. For more details, please refer to the [LICENSE](./LICENSE) file included in the repository.
