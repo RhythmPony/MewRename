@@ -1,6 +1,6 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use tokio::fs;
+use tokio::{io, fs};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use walkdir::WalkDir;
@@ -503,6 +503,21 @@ async fn validate_pattern(pattern: String) -> bool {
 }
 
 #[tauri::command]
+async fn is_dir_exists(path: &str) -> Result<bool, String> {
+    match fs::read_dir(path).await {
+        Ok(_) => Ok(true),
+        Err(e) => {
+            if e.kind() == io::ErrorKind::NotFound {
+                Ok(false)
+            } else {
+                Err(e.to_string())
+            }
+        }
+    }
+}
+
+
+#[tauri::command]
 async fn rename(original_path: String, target_path: String) -> bool {
     let original_path = PathBuf::from(original_path);
     let target_path = PathBuf::from(target_path);
@@ -526,7 +541,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![foresight_with_serial, foresights, validate_pattern, rename])
+        .invoke_handler(tauri::generate_handler![foresight_with_serial, foresights, validate_pattern, rename, is_dir_exists])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
