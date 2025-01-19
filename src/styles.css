@@ -247,6 +247,7 @@ p {
 
 .cell input[type="text"]:invalid + span::after {
   content: attr(data-hint);
+  color: red;
   margin-left: 8px;
 }
 
@@ -298,6 +299,14 @@ p {
   border-radius: 0.25em;
   border: 1px solid transparent;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.operation-succeeded {
+  border: 2px solid green;
+}
+
+.operation-failed {
+  border: 2px solid red;
 }
 
 .t-cell {

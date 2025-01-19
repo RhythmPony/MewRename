@@ -17,7 +17,8 @@
           <div class="row">
             <label for="root-input">文件夹：</label>
             <div class="cell fixed-cell">
-              <input type="text" id="root-input" placeholder="选择文件夹" />
+              <input type="text" id="root-input" placeholder="文件夹路径" />
+              <span class="vilidity" data-hint="路径不存在或不是文件夹"></span>
             </div>
             <button type="button" id="browse-button">浏览</button>
           </div>
@@ -27,7 +28,7 @@
               <input
                 type="text"
                 id="pattern-input"
-                placeholder="被替换的文字或正则表达式"
+                placeholder="替换源文本或模式"
               />
               <span class="vilidity" data-hint="无效的正则表达式"></span>
             </div>
@@ -35,7 +36,11 @@
           <div class="row">
             <label for="replacement">替换文本：</label>
             <div class="cell fixed-cell">
-              <input type="text" id="replacement-input" />
+              <input
+                type="text"
+                id="replacement-input"
+                placeholder="替换目标文本"
+              />
             </div>
             <button type="button" id="execute-button">执行</button>
           </div>

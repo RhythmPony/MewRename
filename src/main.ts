@@ -17,6 +17,7 @@ let resultArea: HTMLDivElement | null;
 let resultTbody: HTMLTableSectionElement | null;
 let executeButton: HTMLButtonElement | null;
 let pending = false;
+let renameForm: HTMLFormElement | null;
 
 type PathInfo = [string, string, string, string];
 
@@ -204,49 +205,50 @@ async function updateForesights() {
 }
 
 async function renames() {
-  try {
-    let table = document.querySelector("#table-container table");
-    let rows = table?.querySelectorAll("tr");
-    if (!rows) {
-      return;
+  let table = document.querySelector("#table-container table");
+  let rows = table?.querySelectorAll("tr");
+  if (!rows) {
+    return;
+  }
+
+  const reversedRows = Array.from(rows).reverse();
+
+  pending = true;
+  for (let row of reversedRows) {
+    const checkCell = row.children[0].querySelector(
+      "input[type=checkbox]"
+    ) as HTMLInputElement;
+    if (!checkCell?.checked) {
+      continue;
     }
+    const originalCell = row.children[1] as HTMLTableCellElement;
+    let originalPath = originalCell.dataset.path;
 
-    const reversedRows = Array.from(rows).reverse();
-
-    pending = true;
-    for (let row of reversedRows) {
-      const checkCell = row.children[0].querySelector(
-        "input[type=checkbox]"
-      ) as HTMLInputElement;
-      if (!checkCell?.checked) {
-        continue;
-      }
-      const originalCell = row.children[1] as HTMLTableCellElement;
-      let originalPath = originalCell.dataset.path;
-
-      const targetCell = row.children[2] as HTMLTableCellElement;
-      let targetPath = targetCell.dataset.path;
-      if (
-        !originalPath ||
-        originalPath === null ||
-        !targetPath ||
-        targetPath === null
-      ) {
-        continue;
-      }
-      if (originalPath === targetPath) {
-        continue;
-      }
-      const result = await invoke<[string, string, string, string]>("rename", {
+    const targetCell = row.children[2] as HTMLTableCellElement;
+    let targetPath = targetCell.dataset.path;
+    if (
+      !originalPath ||
+      originalPath === null ||
+      !targetPath ||
+      targetPath === null
+    ) {
+      continue;
+    }
+    if (originalPath === targetPath) {
+      continue;
+    }
+    try {
+      await invoke<[string, string, string, string]>("rename", {
         originalPath,
         targetPath,
       });
-      console.log(result);
+      targetCell.classList.add("operation-succeeded");
+    } catch (error) {
+      targetCell.classList.add("operation-failed");
+      targetCell.dataset.errorInfo = (error as Error).message;
     }
-    pending = false;
-  } catch (e) {
-    console.error("Error:", e);
   }
+  pending = false;
 }
 
 function validatePattern() {
@@ -269,6 +271,7 @@ function validatePattern() {
       }
     })
     .catch((error) => {
+      patternInput?.setCustomValidity("发生了未知错误");
       console.error("Error:", error);
     });
 }
@@ -282,6 +285,25 @@ async function listenForesights() {
     }
     addDataRows(data);
   });
+}
+
+async function dir_exists() {
+  const path = rootInput?.value;
+  if (path === null) {
+    rootInput?.setCustomValidity("文件夹路径不能为空");
+    return;
+  }
+  try {
+    const result = await invoke("is_dir_exists", { path });
+    if (result === true) {
+      rootInput?.setCustomValidity("");
+    } else {
+      rootInput?.setCustomValidity("文件夹路径不存在");
+    }
+  } catch (error) {
+    rootInput?.setCustomValidity("发生了未知错误");
+    console.error("Error:", error);
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -300,6 +322,8 @@ window.addEventListener("DOMContentLoaded", () => {
   executeButton = document.querySelector(
     "#execute-button"
   ) as HTMLButtonElement;
+  renameForm = document.querySelector("#rename-form") as HTMLFormElement;
+
   initTable();
   browseButton.addEventListener("click", async (e) => {
     e.preventDefault();
@@ -315,6 +339,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   rootInput.addEventListener("blur", (e) => {
     e.preventDefault();
+    dir_exists();
     foresights();
   });
   depthNumber.addEventListener("change", (e) => {
@@ -349,6 +374,10 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   executeButton.addEventListener("click", async (e) => {
     e.preventDefault();
+    if (!renameForm?.checkValidity()) {
+      alert("表单信息验证失败");
+      return;
+    }
     const confirmation = await confirm("此操作不可逆。确认继续？", {
       title: "警告",
       kind: "warning",

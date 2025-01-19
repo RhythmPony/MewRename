@@ -86,13 +86,18 @@ fn replacement_handler(replacement: &str, serial_number: i64) -> Result<String, 
 }
 
 fn replace_with_captures(original: &str, replacement_caps: &regex::Captures) -> String {
-    let re = Regex::new(r"<:(\d{1,2})>").unwrap();
+    let re = Regex::new(r"(@?)<:(\d{1,2})>").unwrap();
     re.replace_all(original, |match_caps: &regex::Captures| {
-        let num = match_caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
-        if num < replacement_caps.len() {
-            replacement_caps.get(num).unwrap().as_str().to_string()
+        let at_sign = match_caps.get(1).map_or(false, |m| m.as_str() == "@");
+        let num = match_caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
+        if at_sign {
+            format!("<:{}>", match_caps.get(2).unwrap().as_str())
         } else {
-            "<:invalid_index>".to_string()
+            if num < replacement_caps.len() {
+                replacement_caps.get(num).unwrap().as_str().to_string()
+            } else {
+                "<:invalid_index>".to_string()
+            }
         }
     })
     .to_string()
@@ -264,11 +269,11 @@ fn replace_with_count(
             highlighted_replaced_parts.reverse();
         }
 
-        let highlighted = highlighted_parts.concat();
-        let replaced = replaced_parts.concat();
-        let highlighted_replaced = highlighted_replaced_parts.concat();
+        let highlighted_text = highlighted_parts.concat();
+        let replaced_text = replaced_parts.concat();
+        let highlighted_replaced_text = highlighted_replaced_parts.concat();
 
-        Ok((highlighted, replaced, highlighted_replaced))
+        Ok((highlighted_text, replaced_text, highlighted_replaced_text))
     }
 }
 
@@ -382,15 +387,6 @@ fn foresight(
             }
         }
     };
-
-    let new_path = Path::new(&target_path);
-    if new_path == path {
-        return Ok(default_result);
-    }
-
-    if new_path.exists() {
-        return Ok(default_result);
-    }
 
     Ok((original_path, original_name, target_path, target_name))
 }
@@ -518,17 +514,21 @@ async fn is_dir_exists(path: &str) -> Result<bool, String> {
 
 
 #[tauri::command]
-async fn rename(original_path: String, target_path: String) -> bool {
+async fn rename(original_path: String, target_path: String) -> Result<String, String> {
     let original_path = PathBuf::from(original_path);
     let target_path = PathBuf::from(target_path);
 
     if !original_path.exists() {
-        return false;
+        return Err("Original path does not exist.".to_string());
+    }
+
+    if target_path.exists() {
+        return Err("Target path already exists.".to_string());
     }
 
     match fs::rename(&original_path, &target_path).await {
-        Ok(_) => true,
-        Err(_) => false,
+        Ok(_) => Ok(target_path.to_string_lossy().to_string()),
+        Err(e) => Err(format!("Failed to rename:{}", e)),
     }
 }
 
