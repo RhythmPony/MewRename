@@ -32,6 +32,7 @@
     "targets": "nsis",
     "icon": ["icons/*"],
     "category": "Utility",
-    "copyright": "Copyright (c) 2025 XIA"
+    "copyright": "Copyright (c) 2025 XIA",
+    "licenseFile": "../LICENCE"
   }
 }
