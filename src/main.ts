@@ -72,8 +72,8 @@ async function initTable() {
   });
   selectCell.appendChild(selectBox);
 
-  sourceCell.textContent = "源字符串";
-  replacedCell.textContent = "替换后字符串";
+  sourceCell.textContent = "源文件名";
+  replacedCell.textContent = "目标文件名";
 
   theadRow.appendChild(selectCell);
   theadRow.appendChild(sourceCell);
