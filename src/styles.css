@@ -301,12 +301,31 @@ p {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
-.operation-succeeded {
-  border: 2px solid green;
+.operation-succeeded > div,
+.operation-failed > div {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.operation-failed {
-  border: 2px solid red;
+.operation-succeeded > div::before,
+.operation-failed > div::before {
+  content: "";
+  margin: 4px;
+  height: 1em;
+  line-height: 1.5;
+  aspect-ratio: 1 / 1;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.operation-succeeded > div::before {
+  background-image: url("assets/succeeded.svg");
+}
+
+.operation-failed > div::before {
+  background-image: url("assets/failed.svg");
 }
 
 .t-cell {

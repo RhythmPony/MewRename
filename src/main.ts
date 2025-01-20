@@ -99,11 +99,11 @@ async function addDataRows(data: [string, string, string, string][]) {
     checkbox.checked = true;
     checkboxCell.appendChild(checkbox);
 
-    originalCell.innerHTML = originalName;
+    originalCell.innerHTML = `<div class='t-data'>${originalName}</div>`;
     originalCell.title = originalPath;
     originalCell.dataset.path = originalPath;
     originalCell.classList.add("t-cell");
-    targetCell.innerHTML = targetName;
+    targetCell.innerHTML = `<div class='t-data'>${targetName}</div>`;
     targetCell.title = targetPath;
     targetCell.dataset.path = targetPath;
     targetCell.classList.add("t-cell");
@@ -189,12 +189,12 @@ async function updateForesights() {
         serialNumber += 1;
       }
       const originalCell = row.children[1] as HTMLTableCellElement;
-      originalCell.innerHTML = originalName;
+      originalCell.innerHTML = `<div class='t-data'>${originalName}</div>`;
       originalCell.title = originalPath;
       originalCell.dataset.path = originalPath;
 
       const targetCell = row.children[2] as HTMLTableCellElement;
-      targetCell.innerHTML = targetName;
+      targetCell.innerHTML = `<div class='t-data'>${targetName}</div>`;
       targetCell.title = targetPath;
       targetCell.dataset.path = targetPath;
     }
