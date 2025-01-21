@@ -84,13 +84,17 @@
                 </select>
               </div>
               <div class="row-item">
-                <label for="filter-input">筛选器：</label>
-                <input
-                  type="text"
-                  id="filter-input"
-                  value="*"
-                  pattern="[\-A-Za-z0-9_\*\.\?\/]"
-                />
+                <label for="filter-input">过滤器：</label>
+                <div>
+                  <input
+                    type="text"
+                    id="filter-input"
+                    value="*"
+                    placeholder="*"
+                    pattern="^(\*|\?|\/|(?![\.]{2,})[\-A-Za-z0-9_\.]+)?$"
+                  />
+                  <span class="vilidity" data-hint="无效的过滤规则"></span>
+                </div>
               </div>
             </div>
           </div>

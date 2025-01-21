@@ -241,11 +241,11 @@ p {
   align-items: baseline;
 }
 
-.cell input[type="text"] {
+div input[type="text"] {
   width: 100%;
 }
 
-.cell input[type="text"]:invalid + span::after {
+div input[type="text"]:invalid + span::after {
   content: attr(data-hint);
   color: red;
   margin-left: 8px;
@@ -272,6 +272,10 @@ p {
 
 .row-item label {
   width: max-content;
+}
+
+.row-item div {
+  width: 6em;
 }
 
 #table-container {
