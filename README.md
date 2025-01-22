@@ -26,13 +26,7 @@ To build and release MewRename, follow these steps:
    yarn install
    ```
 
-4. Return to the root directory:
-
-   ```
-   cd ..
-   ```
-
-5. Build the application:
+4. Build the application:
 
    ```
    yarn run tauri build
