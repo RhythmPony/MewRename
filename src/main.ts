@@ -126,7 +126,7 @@ let getParams = () => {
       : parseInt(depthNumber?.value as string) || 1;
   const target = targetSelect?.value || "NAME";
   const count = parseInt(countNumber?.value as string) || 0;
-  const fileFilter = filterInput?.value;
+  const fileFilter = filterInput?.value || "*";
   return {
     root,
     pattern,
