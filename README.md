@@ -26,25 +26,13 @@ To build and release MewRename, follow these steps:
    yarn install
    ```
 
-4. Change directory to src-tauri:
-
-   ```
-   cd src-tauri
-   ```
-
-5. Install cargo:
-
-   ```
-   cargo install
-   ```
-
-6. Return to the root directory:
+4. Return to the root directory:
 
    ```
    cd ..
    ```
 
-7. Build the application:
+5. Build the application:
 
    ```
    yarn run tauri build
