@@ -271,11 +271,7 @@ div input[type="text"]:invalid + span::after {
 }
 
 .row-item label {
-  width: max-content;
-}
-
-.row-item div {
-  width: 6em;
+  flex-shrink: 0;
 }
 
 #table-container {
