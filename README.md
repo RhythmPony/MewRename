@@ -11,7 +11,7 @@ To build and release MewRename, follow these steps:
 1. Clone the repository:
 
    ```
-   git clone https://github.com/nixaix/MewRename.git
+   git clone https://github.com/RhythmPony/MewRename.git
    ```
 
 2. Change directory to MewRename:
